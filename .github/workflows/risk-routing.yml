@@ -85,6 +85,9 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # The PR under review is authored by the Claude bot; reviewing
+          # bot-authored PRs is the whole point, so allow bot-initiated runs.
+          allowed_bots: "*"
           # Read-only tool scope — the security agent reviews, it does not edit.
           claude_args: |
             --model claude-opus-4-8
