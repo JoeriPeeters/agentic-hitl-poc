@@ -1,4 +1,8 @@
+import { farewell } from "./farewell.js";
 import { greet } from "./greet.js";
 
-const name = process.argv[2] ?? "world";
-console.log(greet(name));
+const args = process.argv.slice(2);
+const bye = args.includes("--bye");
+const name = args.find((arg) => !arg.startsWith("--")) ?? "world";
+
+console.log(bye ? farewell(name) : greet(name));
