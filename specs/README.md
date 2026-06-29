@@ -22,7 +22,7 @@ specs/<feature>.md  ──referenced by──▶  GitHub issue  ──assign─�
   human-in-the-loop gate meaningful.
 
 ## How to use
-
+    
 1. Copy [`TEMPLATE.md`](TEMPLATE.md) to `specs/<feature>.md` and fill it in.
 2. Open a PR with just the spec and get it reviewed/merged first — agree on the
    *what* before any code exists.

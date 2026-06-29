@@ -1,0 +1,54 @@
+# Auto-implement an issue with the Claude coding agent.
+#
+# Trigger: add the `claude` label to an issue (the equivalent of assigning an
+# issue to Copilot). Claude reads the issue + any referenced spec, implements it
+# on a branch, and opens a pull request. Your branch protection then requires a
+# human to review and approve before it can merge — that's the HITL gate.
+name: Claude — implement issue
+
+on:
+  issues:
+    types: [labeled]
+
+# Only run when the label added is `claude`.
+jobs:
+  implement:
+    if: github.event.label.name == 'claude'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push the branch
+      pull-requests: write # open the PR
+      issues: write # comment back on the issue
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          base_branch: main
+          # Use the most capable model and give it room for a multi-step task.
+          claude_args: |
+            --model claude-opus-4-8
+            --max-turns 25
+          prompt: |
+            Implement GitHub issue #${{ github.event.issue.number }} in this repository.
+
+            Title: ${{ github.event.issue.title }}
+
+            Follow .github/copilot-instructions.md. This repo uses spec-driven
+            development: if the issue references a file under specs/, read that
+            spec first and treat its Acceptance criteria as the definition of
+            done. Honor the spec's Non-goals.
+
+            Requirements:
+            - Make the smallest change that satisfies the issue and its spec.
+            - Add or update tests covering the new behavior.
+            - Run `npm install`, then `npm run typecheck` and `npm test`, and make
+              sure both pass before opening the PR.
+            - Open a pull request targeting `main` that links back to this issue
+              (e.g. "Closes #${{ github.event.issue.number }}"). In the PR
+              description, state what changed, how you verified it (commands run
+              and their result), and call out any assumptions you made.
+            - Do not modify files under .github/ or branch protection.

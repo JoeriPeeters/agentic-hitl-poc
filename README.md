@@ -32,6 +32,18 @@ Branch protection on `main` (require a PR + 1 approving review + passing CI)
 enforces that nothing merges without a human. See "Branch protection" below to
 confirm or adjust it.
 
+## Two ways to drive the agent
+
+The HITL gate (branch protection → PR → your approval) is **agent-agnostic** — it
+doesn't care who opens the PR. This repo supports two AI coders behind that gate:
+
+- **GitHub Copilot coding agent** — assign an issue to `@Copilot`. Requires a
+  Copilot Pro+/Business/Enterprise plan (see below).
+- **Claude coding agent** — add the `claude` label to an issue. Powered by the
+  [Claude GitHub Action](https://github.com/anthropics/claude-code-action) and
+  pay-as-you-go API usage (no subscription). See
+  [Claude coding agent](#claude-coding-agent-no-copilot-plan-needed).
+
 ## One-time setup you do in GitHub (cannot be scripted)
 
 The Copilot coding agent must be enabled for your account/org. This requires a
@@ -42,6 +54,32 @@ The Copilot coding agent must be enabled for your account/org. This requires a
    Coding agent**, and enable it (for Business/Enterprise this is under the
    org's Copilot policies).
 3. Confirm branch protection (below) is on for `main`.
+
+## Claude coding agent (no Copilot plan needed)
+
+Two workflows wire Claude into the same HITL loop:
+
+| Workflow | Trigger | What it does |
+| --- | --- | --- |
+| `.github/workflows/claude-implement.yml` | Add the **`claude` label** to an issue | Claude reads the issue + referenced spec, implements it on a branch, opens a PR. |
+| `.github/workflows/claude.yml` | Mention **`@claude`** in an issue or PR comment | Claude responds in-thread; on a PR it pushes follow-up commits — how you iterate during review. |
+
+**One-time setup:**
+
+1. Create an Anthropic API key at <https://console.anthropic.com>.
+2. Add it as a repo secret named **`ANTHROPIC_API_KEY`**:
+   **Settings → Secrets and variables → Actions → New repository secret**, or via
+   the CLI: `gh secret set ANTHROPIC_API_KEY --repo JoeriPeeters/agentic-hitl-poc`.
+3. That's it — labeling an issue `claude` now kicks off a PR.
+
+> ⚠️ **CI on the bot's PR.** GitHub deliberately does **not** run workflows that
+> were triggered by another workflow's default `GITHUB_TOKEN` (a loop-prevention
+> rule). So `CI / build-and-test` may **not** start automatically on a PR that
+> the Claude action opens — and since branch protection requires that check, the
+> PR can't merge. Two fixes: (a) for the POC, push an empty commit or close/reopen
+> the PR to kick CI, or (b) run the action under a **GitHub App token** instead of
+> the default token, which makes its PRs trigger CI normally (see the action's
+> setup docs). The Copilot coding agent doesn't have this limitation.
 
 ## Spec-driven development
 
