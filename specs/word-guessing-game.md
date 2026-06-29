@@ -1,3 +1,7 @@
+---
+risk: low
+---
+
 # Word guessing game (Hangman engine)
 
 > Status: agreed

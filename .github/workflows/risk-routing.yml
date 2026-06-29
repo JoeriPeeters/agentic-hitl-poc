@@ -1,0 +1,107 @@
+# Risk-based routing.
+#
+# Reads the `risk:` field from the spec a PR names (via a `Spec: specs/<file>.md`
+# line in the PR body), labels the PR `risk:<level>`, and — when the risk is
+# HIGH — runs a read-only "security agent" that reviews the diff against the
+# OWASP Top 10 and posts its findings as a PR comment.
+#
+# Integrity notes:
+# - The risk value is read from the COMMITTED spec file (a human-reviewed
+#   artifact), not from anything the implementing agent self-asserts. The PR body
+#   only points at WHICH spec; the level itself comes from the file.
+# - Fail-closed: if a spec is named but its risk can't be read, we treat it as
+#   `high` rather than waving it through.
+# - The security agent gets a read-only tool scope (no Edit/Write) — a smaller
+#   blast radius than the implementing agent, since a reviewer must not change code.
+name: Risk routing
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+jobs:
+  route:
+    runs-on: ubuntu-latest
+    outputs:
+      risk: ${{ steps.resolve.outputs.risk }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve risk from the named spec
+        id: resolve
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+          # Locate the spec the PR names (first specs/*.md mentioned in the body).
+          spec="$(printf '%s' "${PR_BODY:-}" | grep -oiE 'specs/[A-Za-z0-9._-]+\.md' | head -1 || true)"
+          risk="unspecified"
+          if [ -n "$spec" ] && [ -f "$spec" ]; then
+            # Read `risk:` from the spec's YAML frontmatter.
+            risk="$(awk -F':' '/^risk:/ {gsub(/[^a-zA-Z]/, "", $2); print tolower($2); exit}' "$spec" || true)"
+            case "$risk" in
+              low|medium|high) ;;                 # valid
+              *) risk="high" ;;                   # fail-closed: named spec, unreadable risk
+            esac
+          fi
+          echo "risk=$risk" >> "$GITHUB_OUTPUT"
+          echo "Resolved risk: $risk (spec: ${spec:-none})"
+
+      - name: Label the PR with its risk
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RISK: ${{ steps.resolve.outputs.risk }}
+        run: |
+          set -euo pipefail
+          # Ensure the label exists, then apply it.
+          color=0e8a16 # green (low/unspecified)
+          [ "$RISK" = "medium" ] && color=d4a017
+          [ "$RISK" = "high" ] && color=b60205
+          gh label create "risk:$RISK" --color "$color" --force \
+            --description "Risk level resolved by risk-routing" \
+            --repo "${{ github.repository }}" >/dev/null 2>&1 || true
+          gh pr edit "${{ github.event.pull_request.number }}" \
+            --repo "${{ github.repository }}" --add-label "risk:$RISK"
+
+  security:
+    needs: route
+    if: needs.route.outputs.risk == 'high'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # read-only: the reviewer must not change code
+      pull-requests: write # post the review comment
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: OWASP security review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Read-only tool scope — the security agent reviews, it does not edit.
+          claude_args: |
+            --model claude-opus-4-8
+            --max-turns 20
+            --allowedTools "Read,Glob,Grep,Bash(git diff:*),Bash(git log:*)"
+          prompt: |
+            You are a security review agent for a HIGH-risk change. Review the
+            diff in pull request #${{ github.event.pull_request.number }} against
+            the **OWASP Top 10** (injection, broken access control, cryptographic
+            failures, insecure design, security misconfiguration, vulnerable
+            dependencies, identification/auth failures, software & data integrity
+            failures, logging/monitoring failures, SSRF).
+
+            For each finding, report: the file and line, the OWASP category, a
+            severity (low/medium/high), why it is a risk, and a concrete fix.
+            If you find no issues, say so explicitly and note what you checked.
+
+            Post your findings as a comment on the pull request. Do NOT modify any
+            code — you are a reviewer. This is advisory input for the human
+            approver, who makes the final merge decision.

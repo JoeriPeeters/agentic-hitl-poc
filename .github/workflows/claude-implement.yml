@@ -56,4 +56,7 @@ jobs:
               (e.g. "Closes #${{ github.event.issue.number }}"). In the PR
               description, state what changed, how you verified it (commands run
               and their result), and call out any assumptions you made.
+            - If the issue references a spec under specs/, include a line in the
+              PR description naming it exactly, e.g. `Spec: specs/<file>.md`. The
+              risk-routing workflow reads the spec's `risk:` field from this.
             - Do not modify files under .github/ or branch protection.

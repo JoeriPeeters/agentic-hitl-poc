@@ -1,3 +1,7 @@
+---
+risk: low
+---
+
 # Farewell greeting
 
 > Status: agreed

@@ -1,3 +1,9 @@
+---
+# Machine-readable routing zone. `risk` drives review routing (see ../specs/README.md).
+# low | medium — standard gate. high — also runs the OWASP security agent on the PR.
+risk: low
+---
+
 # <Feature name>
 
 > Status: draft | agreed | implemented

@@ -108,6 +108,30 @@ context and gives your PR review an objective rubric. See
 5. **Approve & merge.** When CI is green and you're satisfied, approve and merge.
    Nothing reaches `main` without this step.
 
+## Risk-based routing
+
+Review intensity should scale with a change's **blast radius**, so each spec
+declares a machine-readable `risk` in its frontmatter (`low` | `medium` | `high`).
+When the agent opens a PR, [`risk-routing.yml`](.github/workflows/risk-routing.yml)
+reads that value from the **committed spec** (not from anything the agent
+asserts) and routes:
+
+```
+PR opened ─▶ read risk from the named spec
+              ├─ low / medium ─▶ label risk:<level>, standard gate
+              └─ high ─────────▶ label risk:high + run the OWASP security agent
+                                  (read-only; posts findings for the human approver)
+```
+
+- The **risk value is a human-reviewed artifact** — it lives in the spec, which
+  was merged through review, so the agent can't self-rate its way past the gate.
+- **Fail-closed:** a named spec whose risk can't be read is treated as `high`.
+- The **security agent has a read-only tool scope** (no edits) — a deliberately
+  smaller blast radius than the implementing agent, since a reviewer must not
+  change code.
+
+See [`specs/README.md`](specs/README.md#risk-based-routing) for the spec side.
+
 ## Branch protection
 
 To verify or (re)apply the rule that enforces human review, see

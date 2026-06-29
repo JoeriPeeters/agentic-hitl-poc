@@ -29,6 +29,28 @@ specs/<feature>.md  ──referenced by──▶  GitHub issue  ──assign─�
 3. File an issue whose body says: **"Implement `specs/<feature>.md`."**
 4. Assign the issue to Copilot. Review its PR against the spec. Merge.
 
+## Risk-based routing
+
+Each spec declares a machine-readable `risk` in its frontmatter:
+
+```yaml
+---
+risk: low   # low | medium | high
+---
+```
+
+When the agent opens a PR for a spec, [`risk-routing.yml`](../.github/workflows/risk-routing.yml)
+reads this value from the **committed spec** (a human-reviewed artifact — the
+agent can't self-assert it) and routes accordingly:
+
+- `low` / `medium` → label the PR `risk:<level>`, standard gate.
+- `high` → also run a **read-only security agent** that reviews the diff against
+  the OWASP Top 10 and posts findings on the PR for the human approver.
+
+Routing is **fail-closed**: if a spec is named but its risk can't be read, it is
+treated as `high`. Set `risk: high` for anything touching auth, untrusted input,
+secrets, persistence, or network calls.
+
 ## Conventions
 
 - One spec per feature, kebab-case filename: `specs/export-csv.md`.
