@@ -10,6 +10,19 @@ is described in GitHub issues, the Copilot coding agent implements it on a branc
 and opens a pull request, and a **human reviews and approves every PR before it
 merges**. Optimize for changes that are easy for a human to review.
 
+## Spec-driven: read the spec first
+
+This repo uses **spec-driven development**. Specifications live in `specs/`.
+
+- If an issue references a spec (e.g. "Implement `specs/farewell.md`"), **read
+  that spec first** and treat its acceptance criteria as the definition of done
+  for the task.
+- Implement exactly what the spec's Behavior and Acceptance criteria describe —
+  honor its Non-goals and do not build beyond them.
+- If the spec has Open questions or is ambiguous, **state your assumption in the
+  PR description and call it out** rather than guessing silently.
+- See `specs/README.md` for the convention.
+
 ## Stack & layout
 
 - **Language:** TypeScript (ES modules, `"type": "module"`).

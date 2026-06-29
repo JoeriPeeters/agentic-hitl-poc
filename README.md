@@ -43,10 +43,19 @@ The Copilot coding agent must be enabled for your account/org. This requires a
    org's Copilot policies).
 3. Confirm branch protection (below) is on for `main`.
 
+## Spec-driven development
+
+This repo uses lightweight, spec-driven development: the durable "what & why"
+for each feature lives as Markdown in [`specs/`](specs/README.md). Agree on the
+spec first (review/merge it), then file an issue saying "Implement
+`specs/<feature>.md`" and assign it to Copilot. The spec gives Copilot rich
+context and gives your PR review an objective rubric. See
+[`specs/farewell.md`](specs/farewell.md) for a worked example.
+
 ## Day-to-day workflow
 
 1. **Write an issue.** New issue → choose **Copilot task** → fill in the goal and
-   acceptance criteria.
+   acceptance criteria (or simply point at a spec: "Implement `specs/<feature>.md`").
 2. **Assign it to Copilot.** In the issue's **Assignees**, pick **Copilot**.
    Copilot reacts with 👀 and starts a session you can watch.
 3. **Copilot opens a PR.** It works on a branch and opens a draft/normal PR,
