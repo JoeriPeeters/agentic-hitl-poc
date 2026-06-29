@@ -30,9 +30,13 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           base_branch: main
           # Use the most capable model and give it room for a multi-step task.
+          # Grant the tools it needs to edit files and run the build/tests —
+          # without this the action's default restricts them and Claude can't
+          # actually implement anything.
           claude_args: |
             --model claude-opus-4-8
             --max-turns 25
+            --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,Bash"
           prompt: |
             Implement GitHub issue #${{ github.event.issue.number }} in this repository.
 
