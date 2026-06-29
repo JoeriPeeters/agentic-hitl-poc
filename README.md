@@ -79,14 +79,12 @@ Two workflows wire Claude into the same HITL loop:
 > The workflows also need `id-token: write` permission (already set) so the action
 > can mint its GitHub token via OIDC.
 
-> ⚠️ **CI on the bot's PR.** GitHub deliberately does **not** run workflows that
-> were triggered by another workflow's default `GITHUB_TOKEN` (a loop-prevention
-> rule). So `CI / build-and-test` may **not** start automatically on a PR that
-> the Claude action opens — and since branch protection requires that check, the
-> PR can't merge. Two fixes: (a) for the POC, push an empty commit or close/reopen
-> the PR to kick CI, or (b) run the action under a **GitHub App token** instead of
-> the default token, which makes its PRs trigger CI normally (see the action's
-> setup docs). The Copilot coding agent doesn't have this limitation.
+> **CI on the bot's PR.** GitHub doesn't run workflows triggered by another
+> workflow's default `GITHUB_TOKEN` (a loop-prevention rule). In practice this is
+> not a problem here: the Claude action runs under the **Claude GitHub App's**
+> token, not the default `GITHUB_TOKEN`, so the PRs it opens trigger `build-and-test`
+> normally. (If you ever run an agent under the plain `GITHUB_TOKEN` and its PR's
+> CI doesn't start, push an empty commit or close/reopen the PR to kick it.)
 
 ## Spec-driven development
 
@@ -115,7 +113,7 @@ context and gives your PR review an objective rubric. See
 To verify or (re)apply the rule that enforces human review, see
 [`docs/branch-protection.md`](docs/branch-protection.md). In short: `main`
 requires a pull request, at least one approving review from a code owner, and a
-passing `CI / build-and-test` check before merging.
+passing `build-and-test` check before merging.
 
 ## Local development
 

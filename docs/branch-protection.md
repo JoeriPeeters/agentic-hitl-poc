@@ -8,8 +8,13 @@ real. Without it, Copilot's PRs (or anyone's) could merge unreviewed.
 - Require a pull request before merging.
 - Require **at least 1 approving review**.
 - Require review from **Code Owners** (see [`../.github/CODEOWNERS`](../.github/CODEOWNERS)).
-- Require the **`CI / build-and-test`** status check to pass.
+- Require the **`build-and-test`** status check to pass.
 - Dismiss stale approvals when new commits are pushed.
+
+> The required status check is named **`build-and-test`** — GitHub Actions reports
+> the check under the *job* name (`build-and-test` in [`ci.yml`](../.github/workflows/ci.yml)),
+> not `workflow / job`. Using `CI / build-and-test` here would leave the check
+> "expected" forever and silently block every merge even when CI is green.
 
 Because Copilot's PRs are authored by the Copilot bot (not by you), you can
 legitimately review and approve them — you are not approving your own work.
@@ -22,7 +27,7 @@ gh api -X PUT repos/JoeriPeeters/agentic-hitl-poc/branches/main/protection \
 {
   "required_status_checks": {
     "strict": true,
-    "contexts": ["CI / build-and-test"]
+    "contexts": ["build-and-test"]
   },
   "enforce_admins": false,
   "required_pull_request_reviews": {
