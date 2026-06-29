@@ -66,11 +66,18 @@ Two workflows wire Claude into the same HITL loop:
 
 **One-time setup:**
 
-1. Create an Anthropic API key at <https://console.anthropic.com>.
-2. Add it as a repo secret named **`ANTHROPIC_API_KEY`**:
+1. **Install the Claude GitHub App** at <https://github.com/apps/claude> and grant
+   it access to this repository. The action fails without it
+   (`Claude Code is not installed on this repository`). This is the analog of
+   enabling the Copilot coding agent — a UI step that can't be scripted.
+2. Create an Anthropic API key at <https://console.anthropic.com>.
+3. Add it as a repo secret named **`ANTHROPIC_API_KEY`**:
    **Settings → Secrets and variables → Actions → New repository secret**, or via
    the CLI: `gh secret set ANTHROPIC_API_KEY --repo JoeriPeeters/agentic-hitl-poc`.
-3. That's it — labeling an issue `claude` now kicks off a PR.
+4. That's it — labeling an issue `claude` now kicks off a PR.
+
+> The workflows also need `id-token: write` permission (already set) so the action
+> can mint its GitHub token via OIDC.
 
 > ⚠️ **CI on the bot's PR.** GitHub deliberately does **not** run workflows that
 > were triggered by another workflow's default `GITHUB_TOKEN` (a loop-prevention
