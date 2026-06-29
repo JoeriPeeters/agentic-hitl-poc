@@ -19,6 +19,7 @@ jobs:
       contents: write # push the branch
       pull-requests: write # open the PR
       issues: write # comment back on the issue
+      id-token: write # let the action mint its GitHub token (OIDC)
     steps:
       - name: Checkout
         uses: actions/checkout@v4

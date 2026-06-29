@@ -26,6 +26,7 @@ jobs:
       contents: write
       pull-requests: write
       issues: write
+      id-token: write # let the action mint its GitHub token (OIDC)
     steps:
       - name: Checkout
         uses: actions/checkout@v4
