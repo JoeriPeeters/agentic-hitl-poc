@@ -1,0 +1,5 @@
+# Every file is owned by the repo owner, so every pull request — including those
+# opened by the Copilot coding agent — requests review from @JoeriPeeters.
+# Combined with branch protection ("require review from Code Owners"), this is
+# the human-in-the-loop gate: nothing merges without an explicit human approval.
+* @JoeriPeeters

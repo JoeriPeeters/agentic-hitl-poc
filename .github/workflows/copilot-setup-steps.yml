@@ -1,0 +1,35 @@
+# Prepares the ephemeral environment the Copilot coding agent runs in.
+#
+# GitHub looks for a job named EXACTLY `copilot-setup-steps` in this file and
+# runs its steps before Copilot starts working, so dependencies and tooling are
+# already in place. See:
+# https://docs.github.com/copilot/customizing-copilot/customizing-the-development-environment-for-copilot-coding-agent
+name: Copilot setup steps
+
+on:
+  # Lets you validate the setup from the Actions tab.
+  workflow_dispatch:
+  # Re-run when the setup itself changes, so failures surface early.
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
