@@ -80,6 +80,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so the agent can diff against main
 
       - name: OWASP security review
         uses: anthropics/claude-code-action@v1
@@ -88,11 +90,14 @@ jobs:
           # The PR under review is authored by the Claude bot; reviewing
           # bot-authored PRs is the whole point, so allow bot-initiated runs.
           allowed_bots: "*"
-          # Read-only tool scope — the security agent reviews, it does not edit.
+          # Read-only review scope: no Edit/Write, and `contents: read` above means
+          # even git physically can't push. The agent may read files and inspect
+          # the diff via git / gh pr diff — that's a smaller blast radius than the
+          # implementer, enforced at the token level, not just the tool list.
           claude_args: |
             --model claude-opus-4-8
-            --max-turns 20
-            --allowedTools "Read,Glob,Grep,Bash(git diff:*),Bash(git log:*)"
+            --max-turns 40
+            --allowedTools "Read,Glob,Grep,Bash(git:*),Bash(gh pr diff:*)"
           prompt: |
             You are a security review agent for a HIGH-risk change. Review the
             diff in pull request #${{ github.event.pull_request.number }} against
